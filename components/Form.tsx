@@ -5,41 +5,41 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 export function Form() {
-
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState(""); 
   const [phone, setPhone] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
 
-    const form = {
-        firstName,
-        lastName,
-        email,
-        phone
+    const form = { firstName, lastName, email, phone };
+
+    try {
+      const response = await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      const content = await response.json();
+      console.log(content);
+      alert(content.data.tableRange);
+
+      setFirstName("");
+      setLastName("");
+      setEmail("");
+      setPhone("");
+    } catch (error) {
+      console.error(error);
+      alert("Submission failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    const response = await fetch('/api/submit', {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(form)
-    });
-
-    const content = await response.json();
-
-    console.log(content)
-    alert(content.data.tableRange);
-    
-    setFirstName("");
-    setLastName("");
-    setEmail("");
-    setPhone("");
   };
+
   return (
     <div className="shadow-input mx-auto w-full max-w-md rounded-none bg-white p-4 md:rounded-2xl md:p-8 dark:bg-black">
       <h2 className="text-xl font-bold text-neutral-800 dark:text-neutral-200">
@@ -65,13 +65,16 @@ export function Form() {
           <Label htmlFor="phone">Phone</Label>
           <Input value={phone} onChange={e => setPhone(e.target.value)} id="phone" placeholder="+212666666666" type="tel" />
         </LabelInputContainer>
-        
 
         <button
-          className="group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
+          className="group/btn relative flex items-center justify-center gap-2 h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] disabled:opacity-50 dark:bg-zinc-800 dark:from-zinc-900 dark:to-zinc-900"
           type="submit"
+          disabled={loading}
         >
-          Submit &rarr;
+          {loading && (
+            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+          )}
+          {loading ? "Submitting..." : "Submit →"}
           <BottomGradient />
         </button>
 
